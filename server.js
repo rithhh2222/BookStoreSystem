@@ -29,7 +29,37 @@ app.get('/test-db', async (req, res) => {
     res.status(500).send('Failed to connect to the database.');
   }
 });
+// 8. Stock the Shelves (Add Sample Data)
+app.get('/seed-data', async (req, res) => {
+  const seedSQL = `
+    INSERT INTO Category (CategoryID, CategoryName) VALUES ('C1', 'IT'), ('C2', 'Design') ON CONFLICT DO NOTHING;
+    INSERT INTO Publisher (PublisherID, PublisherName) VALUES ('P1', 'TechPress') ON CONFLICT DO NOTHING;
+    
+    INSERT INTO Book (BookID, Title, Author, Price, StockQty, CategoryID, PublisherID) VALUES 
+    ('B1', 'Database System', 'John Doe', 18.00, 10, 'C1', 'P1'),
+    ('B2', 'Web Design Basics', 'Jane Smith', 12.00, 5, 'C2', 'P1')
+    ON CONFLICT DO NOTHING;
+  `;
 
+  try {
+    await pool.query(seedSQL);
+    res.send('SUCCESS: Sample books added to the store!');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('ERROR adding data: ' + err.message);
+  }
+});
+
+// 9. The Search Engine (Get all books)
+app.get('/api/books', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM Book');
+    res.json(result.rows); // This sends the data back in a format the website can read
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch books' });
+  }
+});
 // 6. Tell the server to listen for traffic
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
