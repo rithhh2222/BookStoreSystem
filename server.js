@@ -4,7 +4,8 @@ const { Pool } = require('pg');
 
 // 2. Turn on the Express website builder
 const app = express();
-app.use(express.json()); // Allows the system to read data (like book details)
+app.use(express.json()); 
+app.use(express.static('public'));// Allows the system to read data (like book details)
 
 // 3. Connect to your Render Database
 const pool = new Pool({

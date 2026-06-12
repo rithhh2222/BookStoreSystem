@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Store Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fcfaf2; margin: 0; padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0d8c3; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: #b58b4c; border-bottom: 2px solid #f0e6d2; padding-bottom: 15px; margin-top: 0; font-size: 1.2em;}
+        .main-title { color: black; font-size: 1.8em; display: block; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; display: flex; align-items: center; }
+        .form-group label { width: 120px; color: #555; }
+        .form-group input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fdfdfd; }
+        .btn-search { background-color: #2b7a4b; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; float: right; font-weight: bold; font-size: 1em; }
+        .btn-search:hover { background-color: #1e5c36; }
+        .clearfix { clear: both; }
+        .result-list { margin-top: 40px; }
+        .result-title { color: #2a5d84; font-size: 1.2em; font-weight: bold; margin-bottom: 15px; }
+        .book-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; }
+        .book-info { display: flex; align-items: center; }
+        .book-cover { width: 45px; height: 55px; background-color: #eaddb6; margin-right: 15px; border: 1px solid #d4c498; }
+        .btn-buy { background-color: #e3effa; border: 1px solid #a8cbf0; padding: 8px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; color: #333; }
+        .btn-buy:hover { background-color: #cce0f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Simple UI mockup<br><span class="main-title">Search Book</span></h2>
+
+        <div class="form-group">
+            <label>Keyword</label>
+            <input type="text" id="keyword" placeholder="Search by title or author...">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="category" placeholder="Search by category...">
+        </div>
+        <div class="form-group">
+            <label>Price range</label>
+            <input type="text" id="price" placeholder="e.g. 10-20">
+        </div>
+
+        <button class="btn-search" onclick="loadBooks()">Search</button>
+        <div class="clearfix"></div>
+
+        <div class="result-list">
+            <div class="result-title">Result list</div>
+            <div id="books-container">
+                <p style="color: #888;">Loading your books...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // This function asks your Render server for the books
+        async function loadBooks() {
+            try {
+                const response = await fetch('/api/books');
+                const books = await response.json();
+                const container = document.getElementById('books-container');
+                container.innerHTML = ''; // Clear loading message
+
+                if(books.length === 0) {
+                    container.innerHTML = '<p>No books found.</p>';
+                    return;
+                }
+
+                books.forEach(book => {
+                    // Replicate the logic from your test cases (if qty > 5 show "In Stock", else "X left")
+                    let stockMessage = book.stockqty > 5 ? 'In Stock' : `${book.stockqty} left`;
+
+                    // Create the HTML for each book
+                    container.innerHTML += `
+                        <div class="book-item">
+                            <div class="book-info">
+                                <div class="book-cover"></div>
+                                <span style="color: #333;">${book.title} &bull; $${book.price} &bull; ${stockMessage}</span>
+                            </div>
+                            <button class="btn-buy" onclick="alert('Added ${book.title} to your order!')">Buy</button>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                document.getElementById('books-container').innerHTML = '<p style="color: red;">Error loading books from database.</p>';
+            }
+        }
+
+        // Load books automatically when the page opens
+        window.onload = loadBooks;
+    </script>
+</body>
+</html>
