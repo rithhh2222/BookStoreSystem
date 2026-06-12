@@ -35,3 +35,74 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// 7. Setup Database Tables (One-Time Setup)
+app.get('/setup-tables', async (req, res) => {
+  const createTablesSQL = `
+    CREATE TABLE IF NOT EXISTS Category (
+        CategoryID VARCHAR(20) PRIMARY KEY,
+        CategoryName VARCHAR(100) NOT NULL,
+        Description TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS Publisher (
+        PublisherID VARCHAR(20) PRIMARY KEY,
+        PublisherName VARCHAR(100) NOT NULL,
+        Phone VARCHAR(20),
+        Address TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS Customer (
+        CustomerID VARCHAR(20) PRIMARY KEY,
+        FirstName VARCHAR(50) NOT NULL,
+        LastName VARCHAR(50) NOT NULL,
+        Phone VARCHAR(20) NOT NULL,
+        Email VARCHAR(100),
+        Address VARCHAR(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS Payment (
+        PaymentID VARCHAR(20) PRIMARY KEY,
+        PaymentDate TIMESTAMP NOT NULL,
+        PaymentMethod VARCHAR(50) NOT NULL,
+        Amount DECIMAL(10, 2) NOT NULL,
+        Status VARCHAR(20) NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS Book (
+        BookID VARCHAR(20) PRIMARY KEY,
+        Title VARCHAR(100) NOT NULL,
+        Author VARCHAR(100) NOT NULL,
+        ISBN VARCHAR(20),
+        Price DECIMAL(10, 2) NOT NULL,
+        StockQty INT NOT NULL,
+        CategoryID VARCHAR(20) REFERENCES Category(CategoryID),
+        PublisherID VARCHAR(20) REFERENCES Publisher(PublisherID)
+    );
+
+    CREATE TABLE IF NOT EXISTS "Order" (
+        OrderID VARCHAR(20) PRIMARY KEY,
+        CustomerID VARCHAR(20) REFERENCES Customer(CustomerID),
+        OrderDate TIMESTAMP NOT NULL,
+        TotalAmount DECIMAL(10, 2) NOT NULL,
+        PaymentID VARCHAR(20) REFERENCES Payment(PaymentID)
+    );
+
+    CREATE TABLE IF NOT EXISTS OrderDetail (
+        OrderDetailID VARCHAR(20) PRIMARY KEY,
+        OrderID VARCHAR(20) REFERENCES "Order"(OrderID),
+        BookID VARCHAR(20) REFERENCES Book(BookID),
+        Quantity INT NOT NULL,
+        UnitPrice DECIMAL(10, 2) NOT NULL,
+        SubTotal DECIMAL(10, 2) NOT NULL
+    );
+  `;
+
+  try {
+    await pool.query(createTablesSQL);
+    res.send('SUCCESS: All 7 Database tables created successfully according to your Data Dictionary!');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('ERROR creating tables: ' + err.message);
+  }
+});
