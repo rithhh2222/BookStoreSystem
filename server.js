@@ -97,6 +97,29 @@ app.get('/api/books', async (req, res) => {
     res.status(500).json({ error: 'Failed to search books' });
   }
 });
+// 10. The Checkout Engine (Buy a book)
+app.post('/api/buy', async (req, res) => {
+  const { bookId } = req.body; // The website tells us which book to buy
+
+  try {
+    // Check current stock first
+    const checkQuery = await pool.query('SELECT StockQty FROM Book WHERE BookID = $1', [bookId]);
+    if (checkQuery.rows.length === 0) return res.status(404).json({ error: 'Book not found' });
+
+    const currentStock = checkQuery.rows[0].stockqty;
+    
+    // Test Case P02: Prevent buying if out of stock
+    if (currentStock <= 0) return res.status(400).json({ error: 'This book is completely out of stock!' });
+
+    // Test Case P01: Reduce stock by 1
+    await pool.query('UPDATE Book SET StockQty = StockQty - 1 WHERE BookID = $1', [bookId]);
+
+    res.json({ message: 'Success! Your invoice has been generated.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Checkout failed' });
+  }
+});
 // 6. Tell the server to listen for traffic
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

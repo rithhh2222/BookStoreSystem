@@ -84,7 +84,7 @@
                                 <div class="book-cover"></div>
                                 <span style="color: #333;">${book.title} &bull; $${book.price} &bull; ${stockMessage}</span>
                             </div>
-                            <button class="btn-buy" onclick="alert('Ready to buy ${book.title}? We will build this next!')">Buy</button>
+                          <button class="btn-buy" onclick="buyBook('${book.bookid}', '${book.title}')" ${book.stockqty <= 0 ? 'disabled style="background-color: #eee; color: #aaa; cursor: not-allowed;"' : ''}>Buy</button>
                         </div>
                     `;
                 });
@@ -96,6 +96,31 @@
 
         // Load books automatically when the page opens
         window.onload = loadBooks;
+
+        async function buyBook(bookId, title) {
+            try {
+                // Send the purchase request to the server
+                const response = await fetch('/api/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookId: bookId })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success! Show invoice message and reload the books to see the new stock number
+                    alert(`Purchase Confirmed: ${title}\n${result.message}`);
+                    loadBooks(); 
+                } else {
+                    // Failed (e.g., out of stock)
+                    alert(`Cannot complete order: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error buying book:', error);
+                alert('Connection error during checkout.');
+            }
+        }
     </script>
 </body>
 </html>
