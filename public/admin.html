@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fcfaf2; padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0d8c3; }
+        h2 { color: #b58b4c; }
+        .form-group { margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .form-group label { width: 30%; color: #555; align-self: center; }
+        .form-group input { width: 65%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #2b7a4b; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px;}
+        button:hover { background-color: #1e5c36; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Panel - Add New Book</h2>
+        <a href="/" style="float: right; color: #888;">Back to Store</a>
+        <br><br>
+
+        <div class="form-group"><label>Book ID:</label><input type="text" id="bookId" placeholder="e.g. B3"></div>
+        <div class="form-group"><label>Title:</label><input type="text" id="title" placeholder="Book Title"></div>
+        <div class="form-group"><label>Author:</label><input type="text" id="author" placeholder="Author Name"></div>
+        <div class="form-group"><label>Price ($):</label><input type="number" id="price" placeholder="e.g. 25.00"></div>
+        <div class="form-group"><label>Stock Qty:</label><input type="number" id="stockQty" placeholder="e.g. 15"></div>
+        <div class="form-group"><label>Category ID:</label><input type="text" id="categoryId" placeholder="C1 (IT) or C2 (Design)"></div>
+        <div class="form-group"><label>Publisher ID:</label><input type="text" id="publisherId" placeholder="P1"></div>
+
+        <button onclick="addBook()">Save Book to Database</button>
+    </div>
+
+    <script>
+        async function addBook() {
+            const newBook = {
+                bookId: document.getElementById('bookId').value,
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                price: document.getElementById('price').value,
+                stockQty: document.getElementById('stockQty').value,
+                categoryId: document.getElementById('categoryId').value,
+                publisherId: document.getElementById('publisherId').value
+            };
+
+            const response = await fetch('/api/admin/books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newBook)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                // Clear the form
+                document.querySelectorAll('input').forEach(input => input.value = '');
+            } else {
+                alert(result.error);
+            }
+        }
+    </script>
+</body>
+</html>

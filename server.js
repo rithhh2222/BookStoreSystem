@@ -120,6 +120,35 @@ app.post('/api/buy', async (req, res) => {
     res.status(500).json({ error: 'Checkout failed' });
   }
 });
+
+// 11. Admin Login Engine (Test Case L01)
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  
+  // Using the exact test data from your PDF blueprint
+  if (username === 'user1' && password === '123456') {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, error: 'Invalid username or password' });
+  }
+});
+
+// 12. Admin Book Manager (Add a new book)
+app.post('/api/admin/books', async (req, res) => {
+  const { bookId, title, author, price, stockQty, categoryId, publisherId } = req.body;
+
+  try {
+    const insertSQL = `
+      INSERT INTO Book (BookID, Title, Author, Price, StockQty, CategoryID, PublisherID) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+    await pool.query(insertSQL, [bookId, title, author, price, stockQty, categoryId, publisherId]);
+    res.json({ message: 'New book successfully added to the database!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to add book. Make sure the Book ID is unique.' });
+  }
+});
 // 6. Tell the server to listen for traffic
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
