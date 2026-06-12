@@ -51,14 +51,50 @@ app.get('/seed-data', async (req, res) => {
   }
 });
 
-// 9. The Search Engine (Get all books)
+// 9. The Smart Search Engine
 app.get('/api/books', async (req, res) => {
+  // 1. Start with a basic query that joins Books and Categories
+  let searchQuery = `
+    SELECT b.BookID, b.Title, b.Author, b.Price, b.StockQty, c.CategoryName 
+    FROM Book b
+    LEFT JOIN Category c ON b.CategoryID = c.CategoryID
+    WHERE 1=1
+  `;
+  
+  let queryParams = [];
+  let paramCounter = 1;
+
+  // 2. Add Keyword filter (searches Title or Author)
+  if (req.query.keyword) {
+    searchQuery += ` AND (b.Title ILIKE $${paramCounter} OR b.Author ILIKE $${paramCounter})`;
+    queryParams.push(`%${req.query.keyword}%`);
+    paramCounter++;
+  }
+
+  // 3. Add Category filter
+  if (req.query.category) {
+    searchQuery += ` AND c.CategoryName ILIKE $${paramCounter}`;
+    queryParams.push(`%${req.query.category}%`);
+    paramCounter++;
+  }
+
+  // 4. Add Price Range filter (expects format "10-20")
+  if (req.query.price) {
+    const [min, max] = req.query.price.split('-');
+    if (min && max) {
+      searchQuery += ` AND b.Price >= $${paramCounter} AND b.Price <= $${paramCounter+1}`;
+      queryParams.push(min, max);
+      paramCounter += 2;
+    }
+  }
+
+  // 5. Ask the database
   try {
-    const result = await pool.query('SELECT * FROM Book');
-    res.json(result.rows); // This sends the data back in a format the website can read
+    const result = await pool.query(searchQuery, queryParams);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch books' });
+    res.status(500).json({ error: 'Failed to search books' });
   }
 });
 // 6. Tell the server to listen for traffic

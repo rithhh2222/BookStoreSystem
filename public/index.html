@@ -54,30 +54,37 @@
 
     <script>
         // This function asks your Render server for the books
+       // This function asks your Render server for the books
         async function loadBooks() {
+            // 1. Grab the text typed into the inputs
+            const keyword = document.getElementById('keyword').value;
+            const category = document.getElementById('category').value;
+            const price = document.getElementById('price').value;
+
+            // 2. Package them into a search string (e.g., "?keyword=Data&price=10-20")
+            const params = new URLSearchParams({ keyword, category, price }).toString();
+
             try {
-                const response = await fetch('/api/books');
+                // 3. Send the search string to your backend
+                const response = await fetch(`/api/books?${params}`);
                 const books = await response.json();
                 const container = document.getElementById('books-container');
-                container.innerHTML = ''; // Clear loading message
+                container.innerHTML = ''; 
 
                 if(books.length === 0) {
-                    container.innerHTML = '<p>No books found.</p>';
+                    container.innerHTML = '<p>No books found matching your search.</p>';
                     return;
                 }
 
                 books.forEach(book => {
-                    // Replicate the logic from your test cases (if qty > 5 show "In Stock", else "X left")
                     let stockMessage = book.stockqty > 5 ? 'In Stock' : `${book.stockqty} left`;
-
-                    // Create the HTML for each book
                     container.innerHTML += `
                         <div class="book-item">
                             <div class="book-info">
                                 <div class="book-cover"></div>
                                 <span style="color: #333;">${book.title} &bull; $${book.price} &bull; ${stockMessage}</span>
                             </div>
-                            <button class="btn-buy" onclick="alert('Added ${book.title} to your order!')">Buy</button>
+                            <button class="btn-buy" onclick="alert('Ready to buy ${book.title}? We will build this next!')">Buy</button>
                         </div>
                     `;
                 });
